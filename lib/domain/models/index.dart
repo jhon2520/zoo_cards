@@ -1,0 +1,1 @@
+export 'flip_card_model.dart';
