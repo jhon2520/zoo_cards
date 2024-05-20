@@ -24,8 +24,18 @@ class SetCardsIsSelectedEvent extends CardsScreenEvent {
 class SetCardsAreEqualEvent extends CardsScreenEvent {}
 
 class ResetSuccesEvent extends CardsScreenEvent {}
+
 class ResetErrorEvent extends CardsScreenEvent {}
 
-class SetAllCardsEnableEvent extends CardsScreenEvent{}
+class SetAllCardsEnableEvent extends CardsScreenEvent {}
 
-class ResetCardsEvent extends CardsScreenEvent{}
+class ResetCardsEvent extends CardsScreenEvent {}
+
+class SetLogsTimerEvents extends CardsScreenEvent {
+  final LogTimerModel? logTimerModel;
+  SetLogsTimerEvents({this.logTimerModel});
+}
+class SetTimerSecondsEvent extends CardsScreenEvent{
+  final int? value;
+  SetTimerSecondsEvent({this.value});
+}

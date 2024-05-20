@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flippy_cards/core/constants/app_strings.dart';
 import 'package:flippy_cards/domain/models/index.dart';
+import 'package:flippy_cards/presentation/screens/logs_screen/logs_screen.dart';
 import 'package:flippy_cards/presentation/service_locator/service_locator.dart';
 import 'package:flippy_cards/presentation/state/cards_screen_bloc/cards_screen_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class CardsScreens extends StatelessWidget {
   const CardsScreens({super.key});
@@ -24,8 +29,21 @@ class CardsScreens extends StatelessWidget {
   }
 }
 
-class _BodyCardsScreen extends StatelessWidget {
+class _BodyCardsScreen extends StatefulWidget {
   const _BodyCardsScreen();
+
+  @override
+  State<_BodyCardsScreen> createState() => _BodyCardsScreenState();
+}
+
+class _BodyCardsScreenState extends State<_BodyCardsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPersistentFrameCallback((timeStamp) async {
+      await _loadPreferences();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +104,16 @@ class _BodyCardsScreen extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _loadPreferences() async {
+    await SharedPreferences.getInstance().then((value) {
+      if (value.getString("logs") != null) {
+        context.read<CardsScreenBloc>().add(SetLogsTimerEvents(
+            logTimerModel:
+                LogTimerModel.fromRawJson(value.getString("logs")!)));
+      }
+    });
+  }
 }
 
 class _ScoreWidget extends StatelessWidget {
@@ -109,24 +137,27 @@ class _ScoreWidget extends StatelessWidget {
       },
       listenWhen: (previous, current) => previous.score != current.score,
       builder: (context, state) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-              child: Row(
-                children: [
-                  Text(
-                    "${AppStrings.labelScore.toLowerCase()} : $score",
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  const Spacer(),
-                  CircleAvatar(
-                    backgroundColor:Colors.amber[800],
-                    child: IconButton(
-                        onPressed: () {
-                          context.read<CardsScreenBloc>().add(ResetCardsEvent());
-                        }, icon: const Icon(Icons.replay_outlined)),
-                  )
-                ],
-              ));
+        return Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+            child: Row(
+              children: [
+                Text(
+                  "${AppStrings.labelScore} : $score",
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const Spacer(),
+                const _TimerWidget(),
+                const Spacer(),
+                CircleAvatar(
+                  backgroundColor: Colors.amber[800],
+                  child: IconButton(
+                      onPressed: () {
+                        context.read<CardsScreenBloc>().add(ResetCardsEvent());
+                      },
+                      icon: const Icon(Icons.replay_outlined)),
+                )
+              ],
+            ));
       },
     );
   }
@@ -140,23 +171,36 @@ class _ScoreWidget extends StatelessWidget {
         title: const Text(AppStrings.labelTitleWinner),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const[
+          children: const [
             Text(AppStrings.labelReiniciarPartida),
-            SizedBox(height: 5,),
+            SizedBox(
+              height: 5,
+            ),
             Image(image: AssetImage("assets/ponque.jpg")),
-            SizedBox(height: 5,),
+            SizedBox(
+              height: 5,
+            ),
           ],
         ),
         actions: [
-          FilledButton.tonal(onPressed: () {
-            Navigator.of(context).pop(true);
-          }, child: const Text(AppStrings.labelOk))
+          FilledButton.tonal(
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LogsScreen(),
+                    ));
+              },
+              child: const Text(AppStrings.labelScores)),
+          FilledButton.tonal(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text(AppStrings.labelOk)),
         ],
       ),
     );
   }
-
-
 }
 
 class _FlipCards extends StatefulWidget {
@@ -246,20 +290,19 @@ class _SuccessCard extends StatefulWidget {
   State<_SuccessCard> createState() => _SuccessCardState();
 }
 
-class _SuccessCardState extends State<_SuccessCard> with SingleTickerProviderStateMixin {
-
+class _SuccessCardState extends State<_SuccessCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
-  _controller = AnimationController(
+    _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
     _controller.forward();
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -338,4 +381,81 @@ class _FrontCard extends StatelessWidget {
                 offset: Offset(2, 2),
                 spreadRadius: 2)
           ]);
+}
+
+class _TimerWidget extends StatefulWidget {
+  const _TimerWidget();
+
+  @override
+  State<_TimerWidget> createState() => __TimerWidgetState();
+}
+
+class __TimerWidgetState extends State<_TimerWidget> {
+  late StopWatchTimer _stopWatchTimer;
+
+  @override
+  void initState() {
+    _stopWatchTimer = StopWatchTimer(
+      mode: StopWatchMode.countUp,
+    )..onStartTimer();
+    super.initState();
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    await _stopWatchTimer.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<CardsScreenBloc, CardsScreenState>(
+      listener: (context, state) {
+        if (state.maxScorePosible == state.score) {
+          _stopWatchTimer.onStopTimer();
+          _saveTimerInPreferences(
+              _stopWatchTimer.rawTime.valueOrNull.toString());
+          context.read<CardsScreenBloc>().add(
+              SetTimerSecondsEvent(value: _stopWatchTimer.rawTime.valueOrNull));
+        }
+      },
+      listenWhen: (previous, current) => previous.score != current.score,
+      builder: (context, state) {
+        return StreamBuilder<int>(
+          stream: _stopWatchTimer.rawTime,
+          initialData: 0,
+          builder: (context, snap) {
+            final value = snap.data;
+            final displayTime =
+                StopWatchTimer.getDisplayTime(value!, milliSecond: false);
+            return Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                displayTime,
+                style: const TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _saveTimerInPreferences(String? timer) async {
+    LogTimerModel logTimerModel = LogTimerModel(
+        list: [ListElement(dateTime: DateTime.now(), timer: timer)]);
+    final prefs = await SharedPreferences.getInstance();
+
+    final String? logs = prefs.getString("logs");
+    if (logs != null) {
+      final LogTimerModel oldLogTimerModel = LogTimerModel.fromRawJson(logs);
+      final newLogs = oldLogTimerModel.copyWith(
+          list: [...oldLogTimerModel.list ?? [], ...logTimerModel.list ?? []]);
+      await prefs.setString("logs", newLogs.toRawJson());
+    } else {
+      await prefs.setString("logs", logTimerModel.toRawJson());
+    }
+  }
 }

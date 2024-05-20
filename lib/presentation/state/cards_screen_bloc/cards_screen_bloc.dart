@@ -66,6 +66,12 @@ class CardsScreenBloc extends Bloc<CardsScreenEvent, CardsScreenState> {
     on<ResetErrorEvent>((event, emit) {
       emit(state.copyWith(errorPairInCards: false));
     });
+    on<SetLogsTimerEvents>((event, emit) {
+      emit(state.copyWith(logsTimer: event.logTimerModel));
+    });
+    on<SetTimerSecondsEvent>((event, emit) {
+      emit(state.copyWith(secondsInTimer: event.value));
+    });
 
     on<SetAllCardsEnableEvent>((event, emit) {
       final newCardsInGame =

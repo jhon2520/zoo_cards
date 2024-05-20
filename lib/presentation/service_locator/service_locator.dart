@@ -5,4 +5,5 @@ final getIt = GetIt.instance;
 
 void initServiceLocator(){
   getIt.registerFactory(() => CardsScreenBloc());
+  getIt.registerFactory(() => LogScreenBloc());
 }

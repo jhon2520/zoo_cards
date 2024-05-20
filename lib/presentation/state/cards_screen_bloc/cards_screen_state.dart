@@ -8,6 +8,8 @@ class CardsScreenState extends Equatable {
   final bool? errorPairInCards;
   final int? score;
   final int? maxScorePosible;
+  final LogTimerModel? logsTimer;
+  final int? secondsInTimer;
 
   const CardsScreenState(
       {this.numberOfFlippedCards = 0,
@@ -17,6 +19,8 @@ class CardsScreenState extends Equatable {
       this.errorPairInCards,
       this.score = 0,
       this.maxScorePosible = 0,
+      this.logsTimer,
+      this.secondsInTimer,
       });
 
   CardsScreenState copyWith({
@@ -27,6 +31,8 @@ class CardsScreenState extends Equatable {
     bool? errorPairInCards,
     int? score,
     int? maxScorePosible,
+    LogTimerModel? logsTimer,
+    int? secondsInTimer,
   }) {
     return CardsScreenState(
       numberOfFlippedCards: numberOfFlippedCards ?? this.numberOfFlippedCards,
@@ -35,7 +41,9 @@ class CardsScreenState extends Equatable {
       successPairInCards: successPairInCards ?? this.successPairInCards,
       errorPairInCards: errorPairInCards ?? this.errorPairInCards,
       score : score ?? this.score,
-      maxScorePosible : maxScorePosible ?? this.maxScorePosible
+      maxScorePosible : maxScorePosible ?? this.maxScorePosible,
+      logsTimer : logsTimer ?? this.logsTimer,
+      secondsInTimer : secondsInTimer ?? this.secondsInTimer
     );
   }
 
@@ -47,6 +55,8 @@ class CardsScreenState extends Equatable {
         successPairInCards,
         errorPairInCards,
         score,
-        maxScorePosible
+        maxScorePosible,
+        logsTimer,
+        secondsInTimer
       ];
 }
