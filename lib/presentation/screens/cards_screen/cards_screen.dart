@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:flip_card/flip_card.dart';
@@ -49,7 +51,7 @@ class _BodyCardsScreenState extends State<_BodyCardsScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Center(
-        child: BlocConsumer<CardsScreenBloc, CardsScreenState>(
+        child: BlocConsumer<CardsScreenBloc, CardsScreenBlocState>(
           listener: (context, state) {
             if (state.successPairInCards == true) {
               context.read<CardsScreenBloc>().add(ResetSuccesEvent());
@@ -125,7 +127,7 @@ class _ScoreWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CardsScreenBloc, CardsScreenState>(
+    return BlocConsumer<CardsScreenBloc, CardsScreenBlocState>(
       listener: (context, state) async {
         if (state.maxScorePosible == state.score) {
           await _showModalWinner(context).then((value) {
@@ -216,11 +218,21 @@ class _FlipCards extends StatefulWidget {
 
 class _FlipCardsState extends State<_FlipCards> {
   late FlipCardController _controller;
+  bool? setMethods = false;
 
   @override
   void initState() {
     super.initState();
     _controller = FlipCardController();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      _controller.toggleCard();
+      await Future.delayed(const Duration(seconds: 3));
+      _controller.toggleCard();
+      await Future.delayed(const Duration(seconds: 1));
+      setMethods = true;
+    });
   }
 
   @override
@@ -236,24 +248,42 @@ class _FlipCardsState extends State<_FlipCards> {
 
         return IgnorePointer(
           ignoring: widget.cardModel.isEnable == true ? false : true,
-          child: FlipCard(
-              onFlipDone: (isFront) {
-                _increaseCounterFlippedCards(_controller);
-                _setCardsIsSelected(widget.cardModel.id!);
-                _setCardsStateIsFront(widget.cardModel.id!);
-                _setCardsNoFLippedDesiable();
-                _setCardsAreEqualEvent();
-                setState(() {});
-              },
-              controller: _controller,
-              onFlip: () {},
-              side: widget.cardModel.isFront == true
-                  ? CardSide.FRONT
-                  : CardSide.BACK,
-              front: _FrontCard(
-                cardModel: widget.cardModel,
-              ),
-              back: const _BackCard()),
+          child: BlocConsumer<CardsScreenBloc, CardsScreenBlocState>(
+            listener: (context, state) async {
+              if(state.errorPairInCards == true && widget.cardModel.isFront == true){
+                await Future.delayed(const Duration(milliseconds: 2));
+              context.read<CardsScreenBloc>().add(SetAllCardsEnableEvent(value: false));
+              context.read<CardsScreenBloc>().add(ResetErrorEvent());
+                await Future.delayed(const Duration(milliseconds: 300));
+                _controller.toggleCard();
+                await Future.delayed(const Duration(milliseconds: 300));
+              context.read<CardsScreenBloc>().add(SetAllCardsEnableEvent(value: true));
+
+              }
+            },
+            builder: (context, state) {
+              return FlipCard(
+                  autoFlipDuration: const Duration(milliseconds: 300),
+                  onFlipDone: (isFront) {
+                    if (setMethods == true) {
+                      _increaseCounterFlippedCards(_controller);
+                      _setCardsIsSelected(widget.cardModel.id!);
+                      _setCardsStateIsFront(widget.cardModel.id!);
+                      _setCardsNoFLippedDesiable();
+                      _setCardsAreEqualEvent();
+                    }
+                  },
+                  controller: _controller,
+                  onFlip: () {},
+                  side: widget.cardModel.isFront == true
+                      ? CardSide.FRONT
+                      : CardSide.BACK,
+                  front: _FrontCard(
+                    cardModel: widget.cardModel,
+                  ),
+                  back: const _BackCard());
+            },
+          ),
         );
       }),
     );
@@ -409,7 +439,7 @@ class __TimerWidgetState extends State<_TimerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CardsScreenBloc, CardsScreenState>(
+    return BlocConsumer<CardsScreenBloc, CardsScreenBlocState>(
       listener: (context, state) {
         if (state.maxScorePosible == state.score) {
           _stopWatchTimer.onStopTimer();

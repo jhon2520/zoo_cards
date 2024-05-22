@@ -1,6 +1,6 @@
 part of 'cards_screen_bloc.dart';
 
-class CardsScreenState extends Equatable {
+class CardsScreenBlocState extends Equatable {
   final int? numberOfFlippedCards;
   final List<FlipCardModel>? cardsInGame;
   final List<FlipCardModel>? cardsSelected;
@@ -11,7 +11,7 @@ class CardsScreenState extends Equatable {
   final LogTimerModel? logsTimer;
   final int? secondsInTimer;
 
-  const CardsScreenState(
+  const CardsScreenBlocState(
       {this.numberOfFlippedCards = 0,
       this.cardsInGame,
       this.cardsSelected,
@@ -23,7 +23,7 @@ class CardsScreenState extends Equatable {
       this.secondsInTimer,
       });
 
-  CardsScreenState copyWith({
+  CardsScreenBlocState copyWith({
     int? numberOfFlippedCards,
     List<FlipCardModel>? cardsInGame,
     List<FlipCardModel>? cardsSelected,
@@ -34,7 +34,7 @@ class CardsScreenState extends Equatable {
     LogTimerModel? logsTimer,
     int? secondsInTimer,
   }) {
-    return CardsScreenState(
+    return CardsScreenBlocState(
       numberOfFlippedCards: numberOfFlippedCards ?? this.numberOfFlippedCards,
       cardsInGame: cardsInGame ?? this.cardsInGame,
       cardsSelected: cardsSelected ?? this.cardsSelected,

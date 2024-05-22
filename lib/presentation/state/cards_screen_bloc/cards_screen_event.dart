@@ -27,7 +27,10 @@ class ResetSuccesEvent extends CardsScreenEvent {}
 
 class ResetErrorEvent extends CardsScreenEvent {}
 
-class SetAllCardsEnableEvent extends CardsScreenEvent {}
+class SetAllCardsEnableEvent extends CardsScreenEvent {
+  final bool? value;
+  SetAllCardsEnableEvent({this.value});
+}
 
 class ResetCardsEvent extends CardsScreenEvent {}
 

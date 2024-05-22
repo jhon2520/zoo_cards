@@ -5,8 +5,8 @@ import 'package:flippy_cards/domain/models/index.dart';
 part 'cards_screen_event.dart';
 part 'cards_screen_state.dart';
 
-class CardsScreenBloc extends Bloc<CardsScreenEvent, CardsScreenState> {
-  CardsScreenBloc() : super(const CardsScreenState()) {
+class CardsScreenBloc extends Bloc<CardsScreenEvent, CardsScreenBlocState> {
+  CardsScreenBloc() : super(const CardsScreenBlocState()) {
     on<SetNumberOfFlippedCardsEvent>((event, emit) {
       if (event.cardIsFront == false) {
         emit(state.copyWith(
@@ -75,7 +75,7 @@ class CardsScreenBloc extends Bloc<CardsScreenEvent, CardsScreenState> {
 
     on<SetAllCardsEnableEvent>((event, emit) {
       final newCardsInGame =
-          state.cardsInGame?.map((e) => e.copyWith(isEnable: true)).toList();
+          state.cardsInGame?.map((e) => e.copyWith(isEnable: event.value ?? true)).toList();
       emit(state.copyWith(cardsInGame: newCardsInGame));
     });
 
